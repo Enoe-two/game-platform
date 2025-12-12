@@ -5,10 +5,10 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 
-$host = 'localhost';
-$dbname = 'game_platform';
+$host = 'mysql.railway.internal';
+$dbname = 'railway';
 $username = 'root';
-$password = '';
+$password = 'nCZekprwbyHSWZHlRpylceqIWVAzdUAf';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
