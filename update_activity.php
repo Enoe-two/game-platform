@@ -2,24 +2,21 @@
 session_start();
 
 if (!isset($_SESSION['username'])) {
+    echo json_encode(['success' => false, 'error' => 'Not connected']);
     exit;
 }
 
-$host = 'mysql.railway.internal';
-$dbname = 'railway';
-$username = 'root';
-$password = 'nCZekprwbyHSWZHlRpylceqIWVAzdUAf';
+// Fichier pour stocker les joueurs
+$playersFile = 'players.json';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
-    // Mettre à jour l'activité du joueur
-    $stmt = $pdo->prepare("UPDATE players SET last_activity = NOW() WHERE username = ?");
-    $stmt->execute([$_SESSION['username']]);
-    
-    echo json_encode(['success' => true]);
-} catch(PDOException $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+// Mettre à jour l'activité du joueur
+$data = [];
+if (file_exists($playersFile)) {
+    $data = json_decode(file_get_contents($playersFile), true) ?: [];
 }
+
+$data[$_SESSION['username']] = ['last_activity' => time()];
+file_put_contents($playersFile, json_encode($data));
+
+echo json_encode(['success' => true]);
 ?>
