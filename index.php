@@ -1,28 +1,51 @@
 <?php
 session_start();
 
-// Configuration de la base de données (à adapter selon votre serveur)
-$host = 'mysql.railway.internal';
-$dbname = 'railway';
-$username = 'root';
-$password = 'nCZekprwbyHSWZHlRpylceqIWVAzdUAf';
+// Fichier pour stocker les joueurs connectés (remplace la base de données)
+$playersFile = 'players.json';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Erreur de connexion : " . $e->getMessage());
+// Fonction pour lire les joueurs
+function getPlayers() {
+    global $playersFile;
+    if (file_exists($playersFile)) {
+        $data = json_decode(file_get_contents($playersFile), true);
+        // Nettoyer les joueurs inactifs (plus de 5 minutes)
+        $now = time();
+        $data = array_filter($data, function($player) use ($now) {
+            return ($now - $player['last_activity']) < 300; // 5 minutes
+        });
+        file_put_contents($playersFile, json_encode($data));
+        return array_keys($data);
+    }
+    return [];
+}
+
+// Fonction pour ajouter/mettre à jour un joueur
+function updatePlayer($username) {
+    global $playersFile;
+    $data = [];
+    if (file_exists($playersFile)) {
+        $data = json_decode(file_get_contents($playersFile), true) ?: [];
+    }
+    $data[$username] = ['last_activity' => time()];
+    file_put_contents($playersFile, json_encode($data));
+}
+
+// Fonction pour supprimer un joueur
+function removePlayer($username) {
+    global $playersFile;
+    if (file_exists($playersFile)) {
+        $data = json_decode(file_get_contents($playersFile), true) ?: [];
+        unset($data[$username]);
+        file_put_contents($playersFile, json_encode($data));
+    }
 }
 
 // Gestion de la connexion
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['connect'])) {
     $_SESSION['username'] = htmlspecialchars($_POST['username']);
     $_SESSION['connected_at'] = time();
-    
-    // Enregistrer le joueur dans la base
-    $stmt = $pdo->prepare("INSERT INTO players (username, last_activity) VALUES (?, NOW()) ON DUPLICATE KEY UPDATE last_activity = NOW()");
-    $stmt->execute([$_SESSION['username']]);
-    
+    updatePlayer($_SESSION['username']);
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
 }
@@ -30,20 +53,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['connect'])) {
 // Gestion de la déconnexion
 if (isset($_GET['logout'])) {
     if (isset($_SESSION['username'])) {
-        $stmt = $pdo->prepare("DELETE FROM players WHERE username = ?");
-        $stmt->execute([$_SESSION['username']]);
+        removePlayer($_SESSION['username']);
     }
     session_destroy();
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
 }
 
-// Nettoyer les joueurs inactifs (plus de 5 minutes)
-$pdo->exec("DELETE FROM players WHERE last_activity < DATE_SUB(NOW(), INTERVAL 5 MINUTE)");
+// Mettre à jour l'activité du joueur connecté
+if (isset($_SESSION['username'])) {
+    updatePlayer($_SESSION['username']);
+}
 
 // Récupérer les joueurs en ligne
-$stmt = $pdo->query("SELECT username FROM players ORDER BY last_activity DESC");
-$players = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$players = getPlayers();
 
 // Gestion du jeu sélectionné
 $currentGame = isset($_GET['game']) ? $_GET['game'] : null;
@@ -144,14 +167,18 @@ $games = [
                     <h3 class="text-xl font-bold text-gray-800">Joueurs connectés (<?php echo count($players); ?>)</h3>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <?php foreach ($players as $player): ?>
-                        <div class="px-4 py-2 bg-purple-100 text-purple-800 rounded-full font-medium">
-                            <?php echo htmlspecialchars($player); ?>
-                            <?php if ($player === $_SESSION['username']): ?>
-                                <span class="text-xs">(Toi)</span>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
+                    <?php if (count($players) > 0): ?>
+                        <?php foreach ($players as $player): ?>
+                            <div class="px-4 py-2 bg-purple-100 text-purple-800 rounded-full font-medium">
+                                <?php echo htmlspecialchars($player); ?>
+                                <?php if ($player === $_SESSION['username']): ?>
+                                    <span class="text-xs">(Toi)</span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="text-gray-500">Aucun autre joueur connecté pour le moment</p>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -183,7 +210,9 @@ $games = [
         // Actualiser la liste des joueurs toutes les 5 secondes
         setInterval(() => {
             fetch('update_activity.php')
-                .then(() => location.reload())
+                .then(() => {
+                    location.reload();
+                })
                 .catch(console.error);
         }, 5000);
     </script>
