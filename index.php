@@ -78,6 +78,13 @@ $games = [
     'racing' => ['name' => 'Course de Voitures', 'icon' => '🏎️', 'min' => 2, 'max' => 8, 'color' => 'blue'],
     'quiz' => ['name' => 'Quiz Party', 'icon' => '🏆', 'min' => 2, 'max' => 10, 'color' => 'green'],
     'reaction' => ['name' => 'Jeu de Réflexes', 'icon' => '⚡', 'min' => 2, 'max' => 6, 'color' => 'yellow'],
+    'snake' => ['name' => 'Snake Battle', 'icon' => '🐍', 'min' => 2, 'max' => 6, 'color' => 'lime'],
+    'memory' => ['name' => 'Memory', 'icon' => '🧠', 'min' => 2, 'max' => 4, 'color' => 'pink'],
+    'bomber' => ['name' => 'Bomber Battle', 'icon' => '💣', 'min' => 2, 'max' => 4, 'color' => 'gray'],
+    'draw' => ['name' => 'Drawing Battle', 'icon' => '🎨', 'min' => 1, 'max' => 8, 'color' => 'cyan'],
+    'pong' => ['name' => 'Pong Battle', 'icon' => '🏓', 'min' => 1, 'max' => 2, 'color' => 'indigo'],
+    'battleroyale' => ['name' => 'Battle Royale', 'icon' => '⚔️', 'min' => 2, 'max' => 10, 'color' => 'purple'],
+    'battlefront' => ['name' => 'Battlefront', 'icon' => '🌍', 'min' => 2, 'max' => 6, 'color' => 'slate'],
 ];
 ?>
 
