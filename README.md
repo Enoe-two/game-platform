@@ -1,6 +1,7 @@
 # 🎮 Game Hub - Plateforme de Jeux Multijoueur PHP
 
 Plateforme de jeux en ligne multijoueur développée en PHP avec MySQL.
+cette platforme a été crée avec l'accompagnement d'une ia (claude dans ce cas) 
 
 ## 🎯 Jeux disponibles
 
@@ -9,6 +10,7 @@ Plateforme de jeux en ligne multijoueur développée en PHP avec MySQL.
 3. **🏎️ Course de Voitures** - Clique pour accélérer et gagner
 4. **🏆 Quiz Party** - Questions de culture générale
 5. **⚡ Jeu de Réflexes** - Teste ta vitesse de réaction
+(de nouveaux jeu arrive)
 
 ## 📋 Prérequis
 
